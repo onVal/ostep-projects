@@ -10,6 +10,7 @@ debugd: wish.c
 	docker run -it --security-opt seccomp=unconfined -v "$(PWD)":/home/ debug 
 	# gcc /home/$< -g /home/wishg; gdb -tui /home/wishg
 
+.PHONY: clean
 clean:
 	rm wish wishg
 	rm -r wishg.dSYM

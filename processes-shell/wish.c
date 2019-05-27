@@ -8,11 +8,11 @@
 #define BUF_SIZE 50
 
 int getsize(char array[]);
-void buildin(char *buffer, buildin);
+// void buildin(char *buffer, buildin);
 
-typedef enum buildin {
-	NOBUILDIN, EXIT, CD, PATH}
-buildin;
+// typedef enum buildin {
+// 	NOBUILDIN, EXIT, CD, PATH}
+// buildin;
 
 int main(int argc, char **argv) {
 	int i = 0, ch_read;
@@ -53,10 +53,11 @@ int main(int argc, char **argv) {
 		//buildin
 		if (strcmp(cmd, "exit") == 0) {
 			exit(0);
-		} else if (strcmp(cmd, "cd")) {
-			builtin(buf, builtin.CD);
+		} 
+		// else if (strcmp(cmd, "cd")) {
+		// 	builtin(buf, builtin.CD);
 			
-		}
+		// }
 		
 
 
@@ -75,18 +76,18 @@ int main(int argc, char **argv) {
 				;
 
 			//cd built-in
-			if (strcmp(args[0], "cd") == 0) {
-				if (args[1] != NULL && args[2] == NULL) {
-					if (chdir(args[1])) {
-						exit(0);
-					} else {
-						perror("chdir() failed");
-						exit(1);
-					}
-				} else {
-					fprintf(stderr, "Wrong built-in syntax: > cd path");
-				}
-			}
+			// if (strcmp(args[0], "cd") == 0) {
+			// 	if (args[1] != NULL && args[2] == NULL) {
+			// 		if (chdir(args[1])) {
+			// 			exit(0);
+			// 		} else {
+			// 			perror("chdir() failed");
+			// 			exit(1);
+			// 		}
+			// 	} else {
+			// 		fprintf(stderr, "Wrong built-in syntax: > cd path");
+			// 	}
+			// }
 
 			execv(args[0], args);
 			exit(0);
@@ -113,10 +114,10 @@ int getsize(char *array) {
 	return i;
 }
 
-void buildin(char *buffer, buildin bi) {
-	switch (bi) {
-		case builtin.CD:
+// void buildin(char *buffer, buildin bi) {
+// 	switch (bi) {
+// 		case builtin.CD:
 
 
-	}
-} 
+// 	}
+// } 
