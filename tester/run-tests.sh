@@ -11,13 +11,13 @@ run_test () {
     if [[ -f $prefile ]]; then
 	eval $(cat $prefile)
 	if (( $verbose == 1 )); then
-	    echo -n "pre-test: "
+	    echo -n "pre-test:  "
 	    cat $prefile
 	fi
     fi
     local testfile=$testdir/$testnum.run
     if (( $verbose == 1 )); then
-	echo -n "test: "
+	echo -n "test:      "
 	cat $testfile
     fi
     eval $(cat $testfile) > tests-out/$testnum.out 2> tests-out/$testnum.err
@@ -82,7 +82,7 @@ run_and_check () {
 	exit 0
     fi
     if (( $verbose == 1 )); then
-	echo "running test $testnum"
+	echo -n -e "\e[33mrunning test $testnum: \e[0m"
 	cat $testdir/$testnum.desc
     fi
     run_test $testdir $testnum $verbose
@@ -96,6 +96,9 @@ run_and_check () {
     # echo "results: outcheck:$outcheck errcheck:$errcheck"
     if (( $rccheck == 0 )) && (( $outcheck == 0 )) && (( $errcheck == 0 )) && (( $othercheck == 0 )); then
 	builtin echo -e "\e[32mtest $testnum: passed\e[0m"
+	if (( $verbose == 1 )); then
+	    echo ""
+	fi
     else
 	if (( $rccheck == 1 )); then
 	    print_error_message $testnum $contrunning rc
@@ -114,11 +117,12 @@ run_and_check () {
 
 # usage: call when args not parsed, or when help needed
 usage () {
-    echo "usage: run-tests.sh [-h] [-v] [-t test] [-c] [-d testdir]"
+    echo "usage: run-tests.sh [-h] [-v] [-t test] [-c] [-s] [-d testdir]"
     echo "  -h                help message"
     echo "  -v                verbose"
     echo "  -t n              run only test n"
     echo "  -c                continue even after failure"
+    echo "  -s                skip pre-test initialization"
     echo "  -d testdir        run tests from testdir"
     return 0
 }
@@ -129,9 +133,10 @@ usage () {
 verbose=0
 testdir="tests"
 contrunning=0
+skippre=0
 specific=""
 
-args=`getopt hvct:d: $*`
+args=`getopt hvsct:d: $*`
 if [[ $? != 0 ]]; then
     usage; exit 1
 fi
@@ -148,6 +153,9 @@ for i; do
         shift;;
     -c)
         contrunning=1
+        shift;;
+    -s)
+        skippre=1
         shift;;
     -t)
         specific=$2
@@ -172,6 +180,19 @@ if [[ ! -d tests-out ]]; then
     mkdir tests-out
 fi
 
+# do a one-time setup step
+if (( $skippre == 0 )); then
+    if [[ -f tests/pre ]]; then
+	builtin echo -e "\e[33mdoing one-time pre-test\e[0m (use -s to suppress)"
+	source tests/pre
+	if (( $? != 0 )); then
+	    echo "pre-test: failed"
+	    exit 1
+	fi
+	echo ""
+    fi
+fi
+
 # run just one test
 if [[ $specific != "" ]]; then
     run_and_check $testdir $specific $contrunning $verbose 1
@@ -186,13 +207,3 @@ while true; do
 done
 
 exit 0
-
-
-
-
-
-
-
-
-
-
