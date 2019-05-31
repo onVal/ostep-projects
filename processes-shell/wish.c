@@ -8,11 +8,6 @@
 #define BUF_SIZE 50
 
 int getsize(char array[]);
-// void buildin(char *buffer, buildin);
-
-// typedef enum buildin {
-// 	NOBUILDIN, EXIT, CD, PATH}
-// buildin;
 
 int main(int argc, char **argv) {
 	int i = 0, ch_read;
@@ -121,11 +116,3 @@ int getsize(char *array) {
 
 	return i;
 }
-
-// void buildin(char *buffer, buildin bi) {
-// 	switch (bi) {
-// 		case builtin.CD:
-
-
-// 	}
-// } 
