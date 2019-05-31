@@ -47,20 +47,29 @@ int main(int argc, char **argv) {
 
 		//remove newline at the end
 		buf[getsize(buf)] = '\0';
+		
+		//extract first token from buffer into cmd
+		i = 0;
+		char cmd[10];
 
-		char *cmd = strtok(buf, " ");
+		while (buf[i] != '\0') {
+			if (buf[i] != ' ') {
+				cmd[i] = buf[i];
+				++i;
+			} else {
+				break;
+			}
+		}
+		cmd[i] = '\0';
 
 		//buildin
 		if (strcmp(cmd, "exit") == 0) {
 			exit(0);
-		} 
-		// else if (strcmp(cmd, "cd")) {
-		// 	builtin(buf, builtin.CD);
-			
-		// }
+		} else if (strcmp(cmd, "cd") == 0) {
+		 //	builtin(buf, builtin.CD);
+		 	//break;
+		}
 		
-
-
 		if ((pid = fork()) < 0) {
 			perror("Cannot fork!");
 			exit(1);
