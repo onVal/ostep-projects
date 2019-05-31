@@ -48,57 +48,40 @@ int main(int argc, char **argv) {
 		//remove newline at the end
 		buf[getsize(buf)] = '\0';
 		
-		//extract first token from buffer into cmd
-		i = 0;
-		char cmd[10];
+		//put buf into tokens
+		char *args[BUF_SIZE] = {0};
+		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++)
+			;
 
-		while (buf[i] != '\0') {
-			if (buf[i] != ' ') {
-				cmd[i] = buf[i];
-				++i;
-			} else {
-				break;
-			}
-		}
-		cmd[i] = '\0';
 
 		//buildin
-		if (strcmp(cmd, "exit") == 0) {
+		if (strcmp(args[0], "exit") == 0) {
 			exit(0);
-		} else if (strcmp(cmd, "cd") == 0) {
-		 //	builtin(buf, builtin.CD);
-		 	//break;
+		} else if (strcmp(args[0], "cd") == 0) {
+			//cd built-in
+		 	if (args[1] != NULL && args[2] == NULL) {
+		 		if (chdir(args[1]) == -1) {
+	 				perror("chdir() failed");
+				}
+			} else {
+		 		fprintf(stderr, "Wrong built-in syntax: > cd path\n");
+			}
+
+			continue;
 		}
 		
 		if ((pid = fork()) < 0) {
 			perror("Cannot fork!");
 			exit(1);
 		} else if (pid == 0) { //child
-			char *args[BUF_SIZE] = {0};
 
 			//add path
-			char *bufpath = calloc(getsize(path[0]) + getsize(buf) + 1, sizeof(char *));
-			memcpy(bufpath, path[0], getsize(path[0]));
-			strcat(bufpath, buf);
+			int path_size = getsize(path[0]);
+			//previously I had sizeof(char *) ??? it's it always 8???
+			char *abs_location = calloc (path_size + getsize(args[0]) + 1, sizeof(char));
+			memcpy(abs_location, path[0], path_size);
 			
-			for (i=0; (args[i] = strsep(&bufpath, " ")) != NULL ; i++)
-				;
-
-			//cd built-in
-			// if (strcmp(args[0], "cd") == 0) {
-			// 	if (args[1] != NULL && args[2] == NULL) {
-			// 		if (chdir(args[1])) {
-			// 			exit(0);
-			// 		} else {
-			// 			perror("chdir() failed");
-			// 			exit(1);
-			// 		}
-			// 	} else {
-			// 		fprintf(stderr, "Wrong built-in syntax: > cd path");
-			// 	}
-			// }
-
-			execv(args[0], args);
+			execv(strcat(abs_location, args[0]), args);
 			exit(0);
 		} else if (pid > 0) { //father
 			wait(NULL);
