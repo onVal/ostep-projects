@@ -16,6 +16,8 @@ int main(int argc, char **argv) {
 	char *buf = NULL;
 
 	char *token;
+	char error_msg[30] = "An error has occurred\n";
+
 	char **path = malloc(2*sizeof(char *));
 	path[0] = "/bin/";
 	path[1] = NULL;
@@ -48,8 +50,21 @@ int main(int argc, char **argv) {
 		
 		//put buf into tokens
 		char *args[BUF_SIZE] = {0};
+
+		char *file_out = NULL;
+
 		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++)
-			;
+			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
+				args[i] = NULL;
+				file_out = strsep(&buf, " ");
+				
+				if (file_out != NULL) {
+					break;
+				} else {
+					fprintf(stderr, error_msg);
+					continue;
+				}
+			}
 
 
 		//buildin
@@ -61,7 +76,7 @@ int main(int argc, char **argv) {
 	 				perror("chdir() failed");
 				}
 			} else {
-		 		fprintf(stderr, "Wrong syntax. Expected: $ cd path\n");
+		 		fprintf(stderr, error_msg);
 			}
 
 			continue;
@@ -78,8 +93,14 @@ int main(int argc, char **argv) {
 			int path_size;
 			int access_ret;
 			char *cmd;
-			//try paths
-			
+
+			if (file_out != NULL) {
+				close(STDOUT_FILENO);
+				close(STDERR_FILENO);
+				open(file_out, O_WRONLY | O_CREAT, S_IRUSR);
+			}
+
+			//try path/binary existence
 			for(i=0; path[i] != NULL; i++) {
 				path_size = getsize(path[i]);
 				cmd = calloc (path_size + getsize(args[0]) + 1, sizeof(char));
