@@ -21,7 +21,10 @@ int main(int argc, char **argv) {
 	char *buf = NULL;
 
 	char *token;
-	char *path[] = {"/bin/", NULL};
+	char **path = malloc(2*sizeof(char *));
+	path[0] = "/bin/";
+	path[1] = NULL;
+	
 	FILE *fs;
 
 	if (argc > 2) {
@@ -55,34 +58,47 @@ int main(int argc, char **argv) {
 
 
 		//buildin
-		if (strcmp(args[0], "exit") == 0) {
+		if (strcmp(args[0], "exit") == 0) { //exit builtin
 			exit(0);
-		} else if (strcmp(args[0], "cd") == 0) {
-			//cd built-in
+		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
 		 	if (args[1] != NULL && args[2] == NULL) {
 		 		if (chdir(args[1]) == -1) {
 	 				perror("chdir() failed");
 				}
 			} else {
-		 		fprintf(stderr, "Wrong built-in syntax: > cd path\n");
+		 		fprintf(stderr, "Wrong syntax. Expected: $ cd path\n");
 			}
 
+			continue;
+		} else if (strcmp(args[0], "path") == 0) { //path builtin
+			for(i=1; ((path[i-1] = args[i]) != NULL); i++)
+				;
 			continue;
 		}
 		
 		if ((pid = fork()) < 0) {
-			perror("Cannot fork!");
+			perror("Cannot fork");
 			exit(1);
 		} else if (pid == 0) { //child
-
-			//add path
-			int path_size = getsize(path[0]);
-			//previously I had sizeof(char *) ??? it's it always 8???
-			char *abs_location = calloc (path_size + getsize(args[0]) + 1, sizeof(char));
-			memcpy(abs_location, path[0], path_size);
+			int path_size;
+			int access_ret;
+			char *cmd;
+			//try paths
 			
-			execv(strcat(abs_location, args[0]), args);
-			exit(0);
+			for(i=0; path[i] != NULL; i++) {
+				path_size = getsize(path[i]);
+				cmd = calloc (path_size + getsize(args[0]) + 1, sizeof(char));
+				memcpy(cmd, path[i], path_size);
+				strcat(cmd, args[0]);
+
+				if ((access_ret = access(cmd, X_OK)) == 0)
+					execv(cmd, args);
+			}
+
+			if (access_ret == -1) {
+				perror("Error");
+				exit(1);
+			}
 		} else if (pid > 0) { //father
 			wait(NULL);
 
