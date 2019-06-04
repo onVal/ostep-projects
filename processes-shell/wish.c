@@ -21,11 +21,11 @@ int main(int argc, char **argv) {
 	char **path = malloc(2*sizeof(char *));
 	path[0] = "/bin/";
 	path[1] = NULL;
-	
+
 	FILE *fs;
 
 	if (argc > 2) {
-		perror("Usage: ./wish [batch_file]");
+		fprintf(stderr, error_msg);
 		exit(1);
 	}
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 
 		//remove newline at the end
 		buf[getsize(buf)] = '\0';
-		
+
 		//put buf into tokens
 		char *args[BUF_SIZE] = {0};
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
 				args[i] = NULL;
 				file_out = strsep(&buf, " ");
-				
+
 				if (file_out != NULL) {
 					break;
 				} else {
@@ -85,9 +85,9 @@ int main(int argc, char **argv) {
 				;
 			continue;
 		}
-		
+
 		if ((pid = fork()) < 0) {
-			perror("Cannot fork");
+			fprintf(stderr, error_msg);
 			exit(1);
 		} else if (pid == 0) { //child
 			int path_size;
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (access_ret == -1) {
-				perror("Error");
+				fprintf(stderr, error_msg);
 				exit(1);
 			}
 		} else if (pid > 0) { //father
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
 			if (argc == 1) {
 				if (feof(stdin)) exit(0);
 			} else {
-				if (feof(fs)) exit(0); 
+				if (feof(fs)) exit(0);
 			}
 		}
 	}
