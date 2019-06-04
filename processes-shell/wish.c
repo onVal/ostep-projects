@@ -29,8 +29,14 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (argc == 2)
+	if (argc == 2) {
 		fs = fopen(argv[1], "r");
+
+		if (fs == NULL) {
+			write(STDERR_FILENO, error_message, strlen(error_message));
+			exit(1);
+		}
+	}
 
 	while (1) {
 		//input
