@@ -42,8 +42,10 @@ int main(int argc, char **argv) {
 		}
 
 		if (ch_read == -1)
-			if (argc != 1 && feof(fs))
-				exit(0);
+			if (argc != 1 && feof(fs)) {
+				fprintf(stderr, error_msg);
+				exit(1);
+			}
 
 		//remove newline at the end
 		buf[getsize(buf)] = '\0';
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
 
 		char *file_out = NULL;
 
-		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++)
+		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++) {
 			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
 				args[i] = NULL;
 				file_out = strsep(&buf, " ");
@@ -65,6 +67,7 @@ int main(int argc, char **argv) {
 					continue;
 				}
 			}
+		}
 
 
 		//buildin
