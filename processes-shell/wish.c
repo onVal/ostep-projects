@@ -48,31 +48,30 @@ int main(int argc, char **argv) {
 
 		//remove newline at the end
 		buf[getsize(buf)] = '\0';
+		int redirect = 0;
 
-		//put buf into tokens
-		char *args[BUF_SIZE] = {0};
+		//from buf to cmd [output file]
+		char *command = buf;
+		char *output_file = NULL;
 
-		char *file_out = NULL;
-		int no_output_file = 0;
-
-		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++) {
-			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
-				args[i] = NULL;
-				file_out = strsep(&buf, " ");
-
-				if (file_out == NULL) {
-					no_output_file = 1;
-				}
-
-				break;
-			}
+		if (strstr(buf, ">") != NULL) {
+			command = strsep(&buf, ">");
+			output_file = strsep(&buf, ">");
+			redirect = 1;
 		}
 
 		//if either no file or multiple files to redirect: error!
-		if (no_output_file || strsep(&buf, " ") != NULL) {
+		if (redirect &&
+				(output_file != NULL || strsep(&buf, ">") != NULL)) {
 			write(STDERR_FILENO, error_message, strlen(error_message));
 			break;
 		}
+
+		//put cmd into tokens (args)
+		char *args[BUF_SIZE] = {0};
+
+		for (i=0; (args[i] = strsep(&command, " ")) != NULL; i++)
+			;
 
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
@@ -117,10 +116,10 @@ int main(int argc, char **argv) {
 			int path_size;
 			char *cmd;
 
-			if (file_out != NULL) {
+			if (output_file != NULL) {
 				close(STDOUT_FILENO);
 				close(STDERR_FILENO);
-				open(file_out, O_WRONLY | O_CREAT, S_IRUSR);
+				open(output_file, O_WRONLY | O_CREAT, S_IRUSR);
 			}
 
 			//try path/binary existence
