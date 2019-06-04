@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 		char *args[BUF_SIZE] = {0};
 
 		char *file_out = NULL;
-		int syntax_err = 0;
+		int no_output_file = 0;
 
 		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++) {
 			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
@@ -61,15 +61,18 @@ int main(int argc, char **argv) {
 				file_out = strsep(&buf, " ");
 
 				if (file_out == NULL) {
-					write(STDERR_FILENO, error_message, strlen(error_message));
-					syntax_err = 1;
+					no_output_file = 1;
 				}
 
 				break;
 			}
 		}
 
-		if (syntax_err) break;
+		//if either no file or multiple files to redirect: error!
+		if (no_output_file || strsep(&buf, " ") != NULL) {
+			write(STDERR_FILENO, error_message, strlen(error_message));
+			break;
+		}
 
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
