@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	char *buf = NULL;
 
 	char *token;
-	char error_msg[30] = "An error has occurred\n";
+	char error_message[30] = "An error has occurred\n";
 
 	char **path = malloc(2*sizeof(char *));
 	path[0] = "/bin/";
@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 	FILE *fs;
 
 	if (argc > 2) {
-		fprintf(stderr, error_msg);
+		write(STDERR_FILENO, error_message, strlen(error_message));
 		exit(1);
 	}
 
@@ -43,8 +43,7 @@ int main(int argc, char **argv) {
 
 		if (ch_read == -1)
 			if (argc != 1 && feof(fs)) {
-				fprintf(stderr, error_msg);
-				exit(1);
+				exit(0);
 			}
 
 		//remove newline at the end
@@ -63,7 +62,7 @@ int main(int argc, char **argv) {
 				if (file_out != NULL) {
 					break;
 				} else {
-					fprintf(stderr, error_msg);
+					write(STDERR_FILENO, error_message, strlen(error_message));
 					continue;
 				}
 			}
@@ -72,6 +71,9 @@ int main(int argc, char **argv) {
 
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
+			if (args[1] != NULL) {
+				write(STDERR_FILENO, error_message, strlen(error_message));
+			}
 			exit(0);
 		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
 		 	if (args[1] != NULL && args[2] == NULL) {
@@ -79,7 +81,7 @@ int main(int argc, char **argv) {
 	 				perror("chdir() failed");
 				}
 			} else {
-		 		fprintf(stderr, error_msg);
+		 		write(STDERR_FILENO, error_message, strlen(error_message));
 			}
 
 			continue;
@@ -90,7 +92,7 @@ int main(int argc, char **argv) {
 		}
 
 		if ((pid = fork()) < 0) {
-			fprintf(stderr, error_msg);
+			write(STDERR_FILENO, error_message, strlen(error_message));
 			exit(1);
 		} else if (pid == 0) { //child
 			int path_size;
@@ -115,7 +117,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (access_ret == -1) {
-				fprintf(stderr, error_msg);
+				write(STDERR_FILENO, error_message, strlen(error_message));
 				exit(1);
 			}
 		} else if (pid > 0) { //father
