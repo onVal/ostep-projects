@@ -53,21 +53,23 @@ int main(int argc, char **argv) {
 		char *args[BUF_SIZE] = {0};
 
 		char *file_out = NULL;
+		int syntax_err = 0;
 
 		for (i=0; (args[i] = strsep(&buf, " ")) != NULL; i++) {
 			if (strcmp(args[i], ">") == 0) { //check for redirect symbol
 				args[i] = NULL;
 				file_out = strsep(&buf, " ");
 
-				if (file_out != NULL) {
-					break;
-				} else {
+				if (file_out == NULL) {
 					write(STDERR_FILENO, error_message, strlen(error_message));
-					continue;
+					syntax_err = 1;
 				}
+
+				break;
 			}
 		}
 
+		if (syntax_err) break;
 
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
@@ -102,8 +104,6 @@ int main(int argc, char **argv) {
 				 }
 			} while (path[i++] != NULL);
 
-			// for(i=1; ((path[i-1] = args[i]) != NULL); i++)
-			// 	;
 			continue;
 		}
 
