@@ -86,8 +86,24 @@ int main(int argc, char **argv) {
 
 			continue;
 		} else if (strcmp(args[0], "path") == 0) { //path builtin
-			for(i=1; ((path[i-1] = args[i]) != NULL); i++)
-				;
+			i = 0;
+			 do {
+				 if (args[i+1] == NULL) {
+						path[i] = NULL;
+				 } else {
+						if (args[i+1][0] == '/')
+								path[i] = args[i+1];
+						else {
+							path[i] = malloc(sizeof(char *));
+							char here[255] = "./";
+							path[i] = strcat(here, args[i+1]);
+							strcat(path[i], "/"); //add trailing slash
+						}
+				 }
+			} while (path[i++] != NULL);
+
+			// for(i=1; ((path[i-1] = args[i]) != NULL); i++)
+			// 	;
 			continue;
 		}
 
@@ -96,7 +112,6 @@ int main(int argc, char **argv) {
 			exit(1);
 		} else if (pid == 0) { //child
 			int path_size;
-			int access_ret;
 			char *cmd;
 
 			if (file_out != NULL) {
@@ -106,6 +121,8 @@ int main(int argc, char **argv) {
 			}
 
 			//try path/binary existence
+			int access_ret = -1;
+
 			for(i=0; path[i] != NULL; i++) {
 				path_size = getsize(path[i]);
 				cmd = calloc (path_size + getsize(args[0]) + 1, sizeof(char));
@@ -118,7 +135,7 @@ int main(int argc, char **argv) {
 
 			if (access_ret == -1) {
 				write(STDERR_FILENO, error_message, strlen(error_message));
-				exit(1);
+				exit(1); //kills child
 			}
 		} else if (pid > 0) { //father
 			wait(NULL);
