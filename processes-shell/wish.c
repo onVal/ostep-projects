@@ -8,6 +8,7 @@
 #define BUF_SIZE 50
 
 int getsize(char array[]);
+void trim(char **str);
 
 int main(int argc, char **argv) {
 	int i = 0, ch_read;
@@ -56,7 +57,7 @@ int main(int argc, char **argv) {
 		buf[getsize(buf)] = '\0';
 		int redirect = 0;
 
-		//from buf to cmd [output file]
+		//from buf to "cmd [> output_file]"
 		char *command = buf;
 		char *output_file = NULL;
 
@@ -74,6 +75,10 @@ int main(int argc, char **argv) {
 
 		//put cmd into tokens (args)
 		char *args[BUF_SIZE] = {0};
+
+		trim(&command);
+		if (strcmp(command,"") == 0)
+			continue;
 
 		for (i=0; (args[i] = strsep(&command, " ")) != NULL; i++)
 			;
@@ -136,8 +141,10 @@ int main(int argc, char **argv) {
 				memcpy(cmd, path[i], path_size);
 				strcat(cmd, args[0]);
 
-				if ((access_ret = access(cmd, X_OK)) == 0)
+				if ((access_ret = access(cmd, X_OK)) == 0) {
 					execv(cmd, args);
+					exit(1);
+				}
 			}
 
 			if (access_ret == -1) {
@@ -165,4 +172,33 @@ int getsize(char *array) {
 		i++;
 
 	return i;
+}
+
+void trim(char **str) {
+	int i;
+	int length = getsize(*str);
+	char *trimmed = malloc(length * sizeof(char));
+
+	int no_whitespace = 1;
+	int y = 0;
+
+	for (i=0; i < length; i++) {
+		if (no_whitespace) {
+			if (*(*str+i) != ' ') {
+				trimmed[y++] = *(*str+i);
+				no_whitespace = 0;
+			}
+		} else {
+			trimmed[y++] = *(*str+i);
+
+			if (*(*str+i) == ' ') {
+				no_whitespace = 1;
+			}
+		}
+	}
+
+	if (no_whitespace) //remove possible trailing whitespace
+		trimmed[y-1] = '\0';
+
+	*str = trimmed;
 }
