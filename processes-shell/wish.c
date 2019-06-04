@@ -56,15 +56,14 @@ int main(int argc, char **argv) {
 
 		if (strstr(buf, ">") != NULL) {
 			command = strsep(&buf, ">");
-			output_file = strsep(&buf, ">");
-			redirect = 1;
-		}
+			output_file = strsep(&buf, " ");
 
-		//if either no file or multiple files to redirect: error!
-		if (redirect &&
-				(output_file != NULL || strsep(&buf, ">") != NULL)) {
-			write(STDERR_FILENO, error_message, strlen(error_message));
-			break;
+			//if either no file or multiple files to redirect: error!
+			if (strcmp(output_file, "") == 0 || output_file == NULL ||
+					strsep(&buf, " ") != NULL) {
+				write(STDERR_FILENO, error_message, strlen(error_message));
+				break;
+			}
 		}
 
 		//put cmd into tokens (args)
@@ -82,7 +81,7 @@ int main(int argc, char **argv) {
 		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
 		 	if (args[1] != NULL && args[2] == NULL) {
 		 		if (chdir(args[1]) == -1) {
-	 				perror("chdir() failed");
+					write(STDERR_FILENO, error_message, strlen(error_message));
 				}
 			} else {
 		 		write(STDERR_FILENO, error_message, strlen(error_message));
