@@ -11,51 +11,51 @@ int getsize(char array[]);
 void trim(char **str);
 
 int main(int argc, char **argv) {
+	const char err_msg[30] = "An error has occurred\n";
+
 	int i = 0, ch_read;
 	unsigned long n = 0;
 	int pid;
+
+	// input buffer
 	char *buf = NULL;
 
-	char *token;
-	char error_message[30] = "An error has occurred\n";
-
+	// path variable
 	char **path = malloc(2*sizeof(char *));
 	path[0] = "/bin/";
 	path[1] = NULL;
 
-	FILE *fs;
-
 	if (argc > 2) {
-		write(STDERR_FILENO, error_message, strlen(error_message));
+		write(STDERR_FILENO, err_msg, strlen(err_msg));
 		exit(1);
 	}
 
+	FILE *fs;
 	if (argc == 2) {
-		fs = fopen(argv[1], "r");
-
-		if (fs == NULL) {
-			write(STDERR_FILENO, error_message, strlen(error_message));
+		if ((fs = fopen(argv[1], "r")) == NULL) {
+			write(STDERR_FILENO, err_msg, strlen(err_msg));
 			exit(1);
 		}
 	}
 
 	while (1) {
-		//input
+		// interactive mode
 		if (argc == 1) {
 			printf("wish> ");
 			ch_read = getline(&buf, &n, stdin);
-		} else {
+		} else { // batch file mode
 			ch_read = getline(&buf, &n, fs);
 		}
 
-		if (ch_read == -1)
+		if (ch_read == -1) {
 			if (argc != 1 && feof(fs)) {
+				fclose(fs);
 				exit(0);
 			}
+		}
 
-		//remove newline at the end
+		//replace newline at the end with nul character
 		buf[getsize(buf)] = '\0';
-		int redirect = 0;
 
 		//from buf to "cmd [> output_file]"
 		char *command = buf;
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 			//if either no file or multiple files to redirect: error!
 			if (strcmp(output_file, "") == 0 || output_file == NULL ||
 					strsep(&buf, " ") != NULL) {
-				write(STDERR_FILENO, error_message, strlen(error_message));
+				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				break;
 			}
 		}
@@ -86,16 +86,16 @@ int main(int argc, char **argv) {
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
 			if (args[1] != NULL) {
-				write(STDERR_FILENO, error_message, strlen(error_message));
+				write(STDERR_FILENO, err_msg, strlen(err_msg));
 			}
 			exit(0);
 		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
 		 	if (args[1] != NULL && args[2] == NULL) {
 		 		if (chdir(args[1]) == -1) {
-					write(STDERR_FILENO, error_message, strlen(error_message));
+					write(STDERR_FILENO, err_msg, strlen(err_msg));
 				}
 			} else {
-		 		write(STDERR_FILENO, error_message, strlen(error_message));
+		 		write(STDERR_FILENO, err_msg, strlen(err_msg));
 			}
 
 			continue;
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
 		}
 
 		if ((pid = fork()) < 0) {
-			write(STDERR_FILENO, error_message, strlen(error_message));
+			write(STDERR_FILENO, err_msg, strlen(err_msg));
 			exit(1);
 		} else if (pid == 0) { //child
 			int path_size;
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (access_ret == -1) {
-				write(STDERR_FILENO, error_message, strlen(error_message));
+				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				exit(1); //kills child
 			}
 		} else if (pid > 0) { //father
