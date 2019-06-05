@@ -154,11 +154,8 @@ int main(int argc, char **argv) {
 		} else if (pid > 0) { //father
 			wait(NULL);
 
-			if (argc == 1) {
-				if (feof(stdin)) exit(0);
-			} else {
-				if (feof(fs)) exit(0);
-			}
+			if (argc == 1 && feof(stdin)) exit(0);
+			if (argc > 1 && feof(fs)) exit(0);
 		}
 	}
 
