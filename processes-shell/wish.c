@@ -91,21 +91,22 @@ int main(int argc, char **argv) {
 		int prog_length = i;
 
 		//parallel command master loop
-		for (i=0; i < prog_length; i++) {
+		int x;
+		for (x=0; x < prog_length; x++) {
 
 
 
 		//from buf to "command [> output_file]"
-		char *command = programs[i];
+		char *command = programs[x];
 		char *output_file = NULL;
 
-		if (strstr(programs[i], ">") != NULL) {
-			command = strsep(&programs[i], ">");
-			output_file = strsep(&programs[i], " ");
+		if (strstr(programs[x], ">") != NULL) {
+			command = strsep(&programs[x], ">");
+			output_file = strsep(&programs[x], " ");
 
 			//if either no file or multiple files to redirect: error!
 			if (strcmp(output_file, "") == 0 || output_file == NULL ||
-					strsep(&programs[i], " ") != NULL) {
+					strsep(&programs[x], " ") != NULL) {
 				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				break;
 			}
@@ -156,13 +157,20 @@ int main(int argc, char **argv) {
 				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				exit(1); //kills child
 			}
-		} else if (pid > 0) { //father
+		} // end of child process code
+	} //end of master parallel loop
+
+		/* else if (pid > 0) { //father
 			wait(NULL);
 
 			if (argc == 1 && feof(stdin)) exit(0);
 			if (argc > 1 && feof(fs)) exit(0);
-		}
-	} //end of master parallel loop
+		} */
+
+	wait(NULL);
+	if (argc == 1 && feof(stdin)) exit(0);
+	if (argc > 1 && feof(fs)) exit(0);
+
 	} //end of while(1) loop
 
 	return 0;
