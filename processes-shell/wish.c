@@ -83,18 +83,29 @@ int main(int argc, char **argv) {
 		}
 
 		//parallel commands support with &
+		char *programs[BUF_SIZE] = {0};
+
+		for (i=0; (programs[i] = strsep(&buf, "&")) != NULL; i++)
+			;
+
+		int prog_length = i;
+
+		//parallel command master loop
+		for (i=0; i < prog_length; i++) {
+
+
 
 		//from buf to "command [> output_file]"
-		char *command = buf;
+		char *command = programs[i];
 		char *output_file = NULL;
 
-		if (strstr(buf, ">") != NULL) {
-			command = strsep(&buf, ">");
-			output_file = strsep(&buf, " ");
+		if (strstr(programs[i], ">") != NULL) {
+			command = strsep(&programs[i], ">");
+			output_file = strsep(&programs[i], " ");
 
 			//if either no file or multiple files to redirect: error!
 			if (strcmp(output_file, "") == 0 || output_file == NULL ||
-					strsep(&buf, " ") != NULL) {
+					strsep(&programs[i], " ") != NULL) {
 				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				break;
 			}
@@ -151,7 +162,8 @@ int main(int argc, char **argv) {
 			if (argc == 1 && feof(stdin)) exit(0);
 			if (argc > 1 && feof(fs)) exit(0);
 		}
-	}
+	} //end of master parallel loop
+	} //end of while(1) loop
 
 	return 0;
 }
