@@ -6,12 +6,18 @@
 #include <string.h>
 
 #define BUF_SIZE 50
+const char err_msg[30] = "An error has occurred\n";
+char here[255] = "./"; //globl variable used by builtin_path
 
 int getsize(char array[]);
 void trim(char **str);
 
+//void exec_builtin(char **args, void (*builtin)(void));
+void builtin_exit(char **args);
+void builtin_cd(char **args);
+void builtin_path(char **args, char ***path);
+
 int main(int argc, char **argv) {
-	const char err_msg[30] = "An error has occurred\n";
 
 	int i = 0, ch_read;
 	unsigned long n = 0;
@@ -85,37 +91,12 @@ int main(int argc, char **argv) {
 
 		//buildin
 		if (strcmp(args[0], "exit") == 0) { //exit builtin
-			if (args[1] != NULL) {
-				write(STDERR_FILENO, err_msg, strlen(err_msg));
-			}
-			exit(0);
+			builtin_exit(args);
 		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
-		 	if (args[1] != NULL && args[2] == NULL) {
-		 		if (chdir(args[1]) == -1) {
-					write(STDERR_FILENO, err_msg, strlen(err_msg));
-				}
-			} else {
-		 		write(STDERR_FILENO, err_msg, strlen(err_msg));
-			}
-
+			builtin_cd(args);
 			continue;
 		} else if (strcmp(args[0], "path") == 0) { //path builtin
-			i = 0;
-			 do {
-				 if (args[i+1] == NULL) {
-						path[i] = NULL;
-				 } else {
-						if (args[i+1][0] == '/')
-								path[i] = args[i+1];
-						else {
-							path[i] = malloc(sizeof(char *));
-							char here[255] = "./";
-							path[i] = strcat(here, args[i+1]);
-							strcat(path[i], "/"); //add trailing slash
-						}
-				 }
-			} while (path[i++] != NULL);
-
+			builtin_path(args, &path);
 			continue;
 		}
 
@@ -174,7 +155,7 @@ int getsize(char *array) {
 void trim(char **str) {
 	int i;
 	int length = getsize(*str);
-	char *trimmed = malloc(length * sizeof(char));
+	char *trimmed = malloc(length * sizeof(char)); //this overrides path somehow
 
 	int no_whitespace = 1;
 	int y = 0;
@@ -198,4 +179,40 @@ void trim(char **str) {
 		trimmed[y-1] = '\0';
 
 	*str = trimmed;
+}
+
+//builtin functions
+void builtin_exit(char **args) {
+	if (args[1] != NULL) {
+		write(STDERR_FILENO, err_msg, strlen(err_msg));
+	}
+	exit(0);
+}
+
+void builtin_cd(char **args) {
+	if (args[1] != NULL && args[2] == NULL) {
+		if (chdir(args[1]) == -1) //perform operation
+			write(STDERR_FILENO, err_msg, strlen(err_msg));
+	}
+	else
+		write(STDERR_FILENO, err_msg, strlen(err_msg));
+}
+
+void builtin_path(char **args, char ***path) {
+	int i = 0;
+
+	 do {
+		 if (args[i+1] == NULL) {
+				(*path)[i] = NULL;
+		 } else {
+			 (*path)[i] = malloc(sizeof(char *));
+
+				if (args[i+1][0] == '/')
+						(*path)[i] = args[i+1];
+				else {
+					(*path)[i] = strcat(here, args[i+1]);
+					strcat((*path)[i], "/"); //add trailing slash
+				}
+		 }
+	} while ((*path)[i++] != NULL);
 }
