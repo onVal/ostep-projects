@@ -61,9 +61,30 @@ int main(int argc, char **argv) {
 		}
 
 		//replace newline at the end with nul character
-		buf[getsize(buf)] = '\0';
+		int bufsize = getsize(buf);
+		buf[bufsize] = '\0';
 
-		//from buf to "cmd [> output_file]"
+		//first thing first, checks if it's a buildin
+		char *tokens[BUF_SIZE] = {0};
+		char *temp_buf = malloc(bufsize);
+		memcpy(temp_buf, buf, bufsize);
+
+		for (i=0; (tokens[i] = strsep(&temp_buf, " ")) != NULL; i++)
+			;
+
+		if (strcmp(tokens[0], "exit") == 0) { //exit builtin
+			builtin_exit(tokens);
+		} else if (strcmp(tokens[0], "cd") == 0) { //cd builtin
+			builtin_cd(tokens);
+			continue;
+		} else if (strcmp(tokens[0], "path") == 0) { //path builtin
+			builtin_path(tokens, &path);
+			continue;
+		}
+
+		//parallel commands support with &
+
+		//from buf to "command [> output_file]"
 		char *command = buf;
 		char *output_file = NULL;
 
@@ -79,7 +100,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		//put cmd into tokens (args)
+		//expand cmd into args "args[0] args[1] ..."
 		char *args[BUF_SIZE] = {0};
 
 		trim(&command);
@@ -89,24 +110,16 @@ int main(int argc, char **argv) {
 		for (i=0; (args[i] = strsep(&command, " ")) != NULL; i++)
 			;
 
-		//buildin
-		if (strcmp(args[0], "exit") == 0) { //exit builtin
-			builtin_exit(args);
-		} else if (strcmp(args[0], "cd") == 0) { //cd builtin
-			builtin_cd(args);
-			continue;
-		} else if (strcmp(args[0], "path") == 0) { //path builtin
-			builtin_path(args, &path);
-			continue;
-		}
-
 		if ((pid = fork()) < 0) {
 			write(STDERR_FILENO, err_msg, strlen(err_msg));
 			exit(1);
-		} else if (pid == 0) { //child
+		} else if (pid == 0) {
+
+			// CHILD PROCESS CODE ////////////////////
 			int path_size;
 			char *cmd;
 
+			//redirects output to output_file if needed
 			if (output_file != NULL) {
 				close(STDOUT_FILENO);
 				close(STDERR_FILENO);
