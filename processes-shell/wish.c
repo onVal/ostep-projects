@@ -12,7 +12,6 @@ char here[255] = "./"; //globl variable used by builtin_path
 int getsize(char array[]);
 void trim(char **str);
 
-//void exec_builtin(char **args, void (*builtin)(void));
 void builtin_exit(char **args);
 void builtin_cd(char **args);
 void builtin_path(char **args, char ***path);
