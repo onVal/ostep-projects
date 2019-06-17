@@ -160,14 +160,8 @@ int main(int argc, char **argv) {
 		} // end of child process code
 	} //end of master parallel loop
 
-		/* else if (pid > 0) { //father
-			wait(NULL);
-
-			if (argc == 1 && feof(stdin)) exit(0);
-			if (argc > 1 && feof(fs)) exit(0);
-		} */
-
-	wait(NULL);
+	int cpid;
+	while ((cpid = wait(NULL)) > 0) ;
 	if (argc == 1 && feof(stdin)) exit(0);
 	if (argc > 1 && feof(fs)) exit(0);
 
