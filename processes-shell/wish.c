@@ -101,10 +101,11 @@ int main(int argc, char **argv) {
 
 		if (strstr(programs[x], ">") != NULL) {
 			command = strsep(&programs[x], ">");
+			trim(&programs[x]); //this is so boring tho
 			output_file = strsep(&programs[x], " ");
 
 			//if either no file or multiple files to redirect: error!
-			if (strcmp(output_file, "") == 0 || output_file == NULL ||
+			if (strcmp(command, "") == 0 || strcmp(output_file, "") == 0 || output_file == NULL ||
 					strsep(&programs[x], " ") != NULL) {
 				write(STDERR_FILENO, err_msg, strlen(err_msg));
 				break;
@@ -217,6 +218,7 @@ void builtin_exit(char **args) {
 
 void builtin_cd(char **args) {
 	if (args[1] != NULL && args[2] == NULL) {
+
 		if (chdir(args[1]) == -1) //perform operation
 			write(STDERR_FILENO, err_msg, strlen(err_msg));
 	}
@@ -234,11 +236,12 @@ void builtin_path(char **args, char ***path) {
 			 (*path)[i] = malloc(sizeof(char *));
 
 				if (args[i+1][0] == '/')
-						(*path)[i] = args[i+1];
+						//(*path)[i] = args[i+1];
+						memcpy((*path)[i], args[i+1], strlen(args[i+1]));
 				else {
 					(*path)[i] = strcat(here, args[i+1]);
-					strcat((*path)[i], "/"); //add trailing slash
 				}
+				strcat((*path)[i], "/"); //add trailing slash
 		 }
 	} while ((*path)[i++] != NULL);
 }
